@@ -6,21 +6,31 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node dist/index.js",
-    "dev": "nodemon -r tsconfig-paths/register src/index.ts"
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+    "dev": "nodemon -r src/index.ts"
   },
   "dependencies": {
+    "@automerge/automerge": "^2.2.8",
+    "@automerge/prosemirror": "^0.0.13",
     "@types/cors": "^2.8.17",
+    "@types/express-jwt": "^7.4.4",
     "@types/lodash": "^4.17.10",
     "@types/mongoose": "^5.11.96",
     "@types/uuid": "^10.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "express-oauth2-jwt-bearer": "^1.6.0",
+    "http": "^0.0.1-security",
+    "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
-    "mongoose": "^8.7.2",
-    "tsconfig-paths": "^4.2.0",
+    "mongoose": "^8.8.0",
+    "prosemirror-example-setup": "^1.2.3",
+    "prosemirror-model": "^1.23.0",
+    "prosemirror-state": "^1.4.3",
+    "prosemirror-view": "^1.35.0",
+    "socket.io": "^4.8.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
@@ -29,7 +39,10 @@
     "concurrently": "^9.0.1",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.10",
     "typescript": "^5.6.3"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8",
+    "utf-8-validate": "^6.0.4"
   }
 }
