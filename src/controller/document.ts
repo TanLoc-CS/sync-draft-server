@@ -1,0 +1,71 @@
+import { Document, DocumentModel, UserModel } from "../model";
+import { mongo, Types } from "mongoose";
+
+export const getDocumentsbyUserId = async (userId: string): Promise<Document[]> => {
+  const documents = await DocumentModel.find({ ownerId: userId }).exec();
+
+  return documents;
+};
+
+export const getDocumentById = async (docId: Types.ObjectId | string): Promise<Document> => {
+  const document = await DocumentModel.findById(docId).exec();
+  
+  if (!document) {
+    throw new Error('Document not found!');
+  }
+
+  return document;
+};
+
+export const createDocument = async (userId: string): Promise<Document> => {
+  const date = new Date();
+
+  const newDoc = await (new DocumentModel({
+    _id: new mongo.ObjectId(),
+    ownerId: userId,
+    title: null,
+    content: null,
+    createdAt: date,
+    updatedAt: date,
+    merges: []
+  }))
+  .save();
+
+  // Add docId to their profile
+  await UserModel.findOneAndUpdate(
+    {
+      userId : userId
+    },
+    {
+      $addToSet: { shared: newDoc._id }
+    },
+    { new: true }
+  )
+
+  return newDoc;
+}
+
+// export const deleteDocumentById = async (docId: Types.ObjectId | string): Promise<void> => {
+//   const result = await DocumentModel.findByIdAndDelete(docId);
+
+//   if (!result) {
+//     throw new Error('Document not found!')
+//   }
+// }
+
+export const updateDocumentTitle = async (docId: Types.ObjectId | string, newTitle: string): Promise<Document> => {
+  const updatedDoc = await DocumentModel.findByIdAndUpdate(
+    docId,
+    {
+      title: newTitle,
+      updatedAt: new Date()
+    },
+    { new: true }
+  ).exec();
+
+  if (!updatedDoc) {
+    throw new Error('Document not found!');
+  }
+
+  return updatedDoc;
+}
