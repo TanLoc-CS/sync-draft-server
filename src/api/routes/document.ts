@@ -1,0 +1,102 @@
+import { Request, Response, Router } from "express";
+import { createDocument, getDocumentById, getDocumentsbyUserId, updateDocumentTitle } from "../../controller/document";
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } from "../status_code";
+import { addSharedIdToProfile, getUserById } from "../../controller/user";
+
+export const documentRouter = (router: Router) => {
+  router.route('/documents')
+  .get(async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { q } = req.query;
+      const userId = req.auth.payload.sub;
+
+      if (q === 'mine') {
+        const myDocs = await getDocumentsbyUserId(userId);
+        
+        return res.status(OK).json(myDocs);
+      } else if (q == 'shared') {
+        const user = await getUserById(userId);
+
+        if (!user) {
+          return res.status(NOT_FOUND).json(null);
+        }
+
+        const sharedDocs = await Promise.all(user.shared.map(docId => getDocumentById(docId)));
+
+        return res.status(OK).json(sharedDocs);
+      }
+
+      return res.status(BAD_REQUEST).json({
+        error: 'Invalid query params'
+      })
+    } catch (error) {
+      console.error(`Error getting documents: ${req.params.userId}: ${error}`);
+      
+      return res.status(INTERNAL_SERVER_ERROR).json({
+        error: 'Internal Server Error'
+      });
+    }
+  })
+
+  router.route('/documents/:docId')
+  .get(async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { docId } = req.params;
+      const userId = req.auth.payload.sub;
+
+      const doc = await getDocumentById(docId);
+
+      if (!doc) {
+        return res.status(NOT_FOUND).json(null)
+      }
+
+      if (userId !== doc.ownerId) {
+        await addSharedIdToProfile(userId, docId);
+        console.log(`[Server] ${userId} added ${docId} to shared`)
+      }
+
+      return res.status(OK).json(doc);
+    } catch (error) {
+      console.error(`Error getting document: ${req.params.docId}: ${error}`);
+      
+      return res.status(INTERNAL_SERVER_ERROR).json({
+        error: 'Internal Server Error'
+      });
+    }
+  })
+  
+  router.route('/documents')
+  .post(async (req: Request, res: Response): Promise<any> => {
+    try {
+      const userId = req.auth.payload.sub;
+
+      const newDoc = await createDocument(userId);
+
+      return res.status(OK).json(newDoc);
+    } catch (error) {
+      console.error(`Error creating document: ${req.params.userId}: ${error}`);
+      
+      return res.status(INTERNAL_SERVER_ERROR).json({
+        error: 'Internal Server Error'
+      });
+    }
+  })
+
+  router.route('/documents/:docId')
+  .put(async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { docId } = req.params;
+      const { newTitle } = req.body;
+
+      const updatedDocument = await updateDocumentTitle(docId, newTitle);
+
+      return res.status(OK).json(updatedDocument);
+    } catch (error) {
+      console.error(`Error updating document: ${req.params.docId}: ${error}`);
+      
+      return res.status(INTERNAL_SERVER_ERROR).json({
+        error: 'Internal Server Error'
+      });
+    }
+  })
+}
