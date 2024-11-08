@@ -6,6 +6,9 @@ import 'dotenv/config'
 
 import connectDB from "./config/mongoose";
 import api from "./api";
+import mongoose from "mongoose";
+import Redis from "ioredis";
+import connectRedis from "./config/redis";
 
 export class SyncServer {
   #server: any
@@ -14,11 +17,15 @@ export class SyncServer {
 
   #io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
 
-  #db: any
+  #db: typeof mongoose
 
+  #redis: Redis
   constructor() {
     // Connect to MongoDB
-    connectDB();
+    this.connectDBSync();
+
+    // Connect to local redis server
+    this.connectRedisSync();
 
     const PORT =
       process.env.PORT !== undefined ? parseInt(process.env.PORT) : 3030;
@@ -54,6 +61,14 @@ export class SyncServer {
     this.#server.listen(PORT, () => {
       console.log(`[Server] Server is running at http://localhost:${3030}`);
     })
+  }
+
+  async connectDBSync() {
+    this.#db = await connectDB();
+  }
+
+  async connectRedisSync() {
+    this.#redis = await connectRedis();
   }
 }
 
