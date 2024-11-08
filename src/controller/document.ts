@@ -37,7 +37,7 @@ export const createDocument = async (userId: string): Promise<Document> => {
       userId : userId
     },
     {
-      $addToSet: { shared: newDoc._id }
+      $addToSet: { documents: newDoc._id }
     },
     { new: true }
   )
