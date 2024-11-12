@@ -14,7 +14,6 @@ async function connectRedis() {
     });
 
     const check = await redis.get("test");
-
     if (check === 'OKAY') {
       console.log('[Redis] Connected to local redis: 127.0.0.1:6379');
       return redis;
