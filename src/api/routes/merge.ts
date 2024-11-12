@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { createMerge, getMergesByDocId } from "../../controller/merge";
 import { INTERNAL_SERVER_ERROR, OK } from "../status_code";
+import { addMergeId } from "../../controller/document";
 
 export const mergeRouter = (router: Router) => {
   router.route('/merges/:docId')
@@ -12,7 +13,7 @@ export const mergeRouter = (router: Router) => {
 
       return res.status(OK).json(merges);
     } catch (error) {
-      console.error(`Error getting merges: ${req.params.docId}: ${error}`);
+      console.error(`[Error] GET | /merges/:docId: ${req.params.docId}: ${error}`);
       
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'
@@ -33,9 +34,11 @@ export const mergeRouter = (router: Router) => {
         description: description
       })
 
+      await addMergeId(docId, newMerge._id);
+
       return res.status(OK).json(newMerge);
     } catch (error) {
-      console.error(`Error creating merge: ${req.auth.payload.sub}: ${error}`);
+      console.error(`[Error] POST | /merges/:docId: ${req.auth.payload.sub}: ${error}`);
 
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'

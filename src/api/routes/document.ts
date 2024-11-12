@@ -1,9 +1,11 @@
 import { Request, Response, Router } from "express";
+import Redis from "ioredis";
+
 import { createDocument, getDocumentById, getDocumentsbyUserId, updateDocumentTitle } from "../../controller/document";
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } from "../status_code";
 import { addSharedIdToProfile, getUserById } from "../../controller/user";
 
-export const documentRouter = (router: Router) => {
+export const documentRouter = (router: Router, redis: Redis) => {
   router.route('/documents')
   .get(async (req: Request, res: Response): Promise<any> => {
     try {
@@ -30,7 +32,7 @@ export const documentRouter = (router: Router) => {
         error: 'Invalid query params'
       })
     } catch (error) {
-      console.error(`Error getting documents: ${req.params.userId}: ${error}`);
+      console.error(`[Error] GET | /documents: ${req.params.userId}: ${error}`);
       
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'
@@ -57,7 +59,7 @@ export const documentRouter = (router: Router) => {
 
       return res.status(OK).json(doc);
     } catch (error) {
-      console.error(`Error getting document: ${req.params.docId}: ${error}`);
+      console.error(`[Error] GET | /documents/:docId: ${req.params.docId}: ${error}`);
       
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'
@@ -71,10 +73,14 @@ export const documentRouter = (router: Router) => {
       const userId = req.auth.payload.sub;
 
       const newDoc = await createDocument(userId);
+      
+      if (newDoc) {
+        await redis.set(newDoc._id.toString(), '');
+      }
 
       return res.status(OK).json(newDoc);
     } catch (error) {
-      console.error(`Error creating document: ${req.params.userId}: ${error}`);
+      console.error(`[Error] POST | /documents: ${req.auth.payload.sub}: ${error}`);
       
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'
@@ -92,7 +98,7 @@ export const documentRouter = (router: Router) => {
 
       return res.status(OK).json(updatedDocument);
     } catch (error) {
-      console.error(`Error updating document: ${req.params.docId}: ${error}`);
+      console.error(`[Error] PUT | /documents/:docId: ${req.params.docId}: ${error}`);
       
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'

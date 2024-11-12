@@ -1,7 +1,7 @@
 import { mongo, Types } from "mongoose";
 import { Merge, MergeModel } from "../model";
 
-export const getMergesByDocId = async (docId: Types.ObjectId | string) => {
+export const getMergesByDocId = async (docId: Types.ObjectId | string): Promise<Merge[]> => {
   const merges = await MergeModel.find({ docId: docId }).exec();
 
   return merges;

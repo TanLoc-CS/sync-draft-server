@@ -53,6 +53,23 @@ export const createDocument = async (userId: string): Promise<Document> => {
 //   }
 // }
 
+export const updateDocument= async (docId: Types.ObjectId | string, content: string): Promise<Document> => {
+  const updatedDoc = await DocumentModel.findByIdAndUpdate(
+    docId,
+    {
+      content: content,
+      updatedAt: new Date()
+    },
+    { new: true }
+  ).exec();
+
+  if (!updatedDoc) {
+    throw new Error('Document not found!');
+  }
+
+  return updatedDoc;
+}
+
 export const updateDocumentTitle = async (docId: Types.ObjectId | string, newTitle: string): Promise<Document> => {
   const updatedDoc = await DocumentModel.findByIdAndUpdate(
     docId,
@@ -68,4 +85,22 @@ export const updateDocumentTitle = async (docId: Types.ObjectId | string, newTit
   }
 
   return updatedDoc;
+}
+
+
+export const addMergeId = async (docId: Types.ObjectId | string, mergeId: Types.ObjectId | string): Promise<Document> => {
+  const addedDoc = await DocumentModel.findByIdAndUpdate(
+    docId,
+    {
+      $addToSet: { merges: docId },
+      updatedAt: new Date()
+    },
+    { new: true }
+  ).exec();
+
+  if (!addedDoc) {
+    throw new Error('Document not found!');
+  }
+
+  return addedDoc;
 }

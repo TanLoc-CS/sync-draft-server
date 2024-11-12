@@ -1,5 +1,5 @@
 import { UserModel, User } from "./user";
-import { DocumentModel, Document } from "./document";
+import { DocumentModel, Document, DocumentSchema } from "./document";
 import { MergeModel, Merge } from "./merge";
 
-export { UserModel, User, DocumentModel, Document, MergeModel, Merge };
+export { UserModel, User, DocumentModel, Document, DocumentSchema, MergeModel, Merge };

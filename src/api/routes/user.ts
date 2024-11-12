@@ -16,15 +16,13 @@ export const userRouter = (router: Router) => {
 
       return res.status(OK).json(user);
     } catch (error) {
-      console.error(`Error getting user: ${req.params.userId}: ${error}`);
+      console.error(`[Error] GET | /users: ${req.params.userId}: ${error}`);
       
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'
       });
     }
   })
-
-  router.route('/users')
   .post(async (req: Request, res: Response): Promise<any> => {
     try {
       const { email, userId } = req.body;
@@ -35,7 +33,7 @@ export const userRouter = (router: Router) => {
 
       return res.status(OK).json(newUser);      
     } catch (error) {
-      console.error(`Error creating user: ${req.body.email}: ${error}`);
+      console.error(`[Error] POST | /users: ${req.body.email}: ${error}`);
 
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'
