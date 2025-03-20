@@ -43,3 +43,17 @@ export const addSharedIdToProfile = async (userId: string, docId: string) => {
 
   return addedNewShared;
 }
+
+export const removeSharedIdFromProfile = async (userId: string, docId: string) => {
+  const removedShared = await UserModel.findOneAndUpdate(
+    {
+      userId: userId
+    },
+    {
+      $pull: { shared: docId }
+    },
+    { new: true }
+  );
+
+  return removedShared;
+};
