@@ -1,9 +1,9 @@
 import { Request, Response, Router } from "express";
 import Redis from "ioredis";
 
-import { createDocument, getDocumentById, getDocumentsbyUserId, updateDocumentTitle } from "../../controller/document";
+import { createDocument, deleteDocumentById, getDocumentById, getDocumentsbyUserId, updateDocumentTitle } from "../../controller/document";
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } from "../status_code";
-import { addSharedIdToProfile, getUserById } from "../../controller/user";
+import { addSharedIdToProfile, getUserById, removeSharedIdFromProfile } from "../../controller/user";
 
 export const documentRouter = (router: Router, redis: Redis) => {
   router.route('/documents')
@@ -49,6 +49,7 @@ export const documentRouter = (router: Router, redis: Redis) => {
       const doc = await getDocumentById(docId);
 
       if (!doc) {
+        await removeSharedIdFromProfile(userId, docId);
         return res.status(NOT_FOUND).json(null)
       }
 
@@ -99,6 +100,23 @@ export const documentRouter = (router: Router, redis: Redis) => {
       return res.status(OK).json(updatedDocument);
     } catch (error) {
       console.error(`[Error] PUT | /documents/:docId: ${req.params.docId}: ${error}`);
+      
+      return res.status(INTERNAL_SERVER_ERROR).json({
+        error: 'Internal Server Error'
+      });
+    }
+  })
+
+  router.route('/documents/:docId')
+  .delete(async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { docId } = req.params;
+
+      await deleteDocumentById(docId);
+
+      return res.status(OK).json({ message: "success" });
+    } catch (error) {
+      console.error(`[Error] DELETE | /documents/:docId: ${req.params.docId}: ${error}`);
       
       return res.status(INTERNAL_SERVER_ERROR).json({
         error: 'Internal Server Error'

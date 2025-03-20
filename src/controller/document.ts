@@ -23,7 +23,7 @@ export const createDocument = async (userId: string): Promise<Document> => {
   const newDoc = await (new DocumentModel({
     _id: new mongo.ObjectId(),
     ownerId: userId,
-    title: null,
+    title: 'Untitled',
     content: null,
     createdAt: date,
     updatedAt: date,
@@ -45,13 +45,13 @@ export const createDocument = async (userId: string): Promise<Document> => {
   return newDoc;
 }
 
-// export const deleteDocumentById = async (docId: Types.ObjectId | string): Promise<void> => {
-//   const result = await DocumentModel.findByIdAndDelete(docId);
+export const deleteDocumentById = async (docId: Types.ObjectId | string): Promise<void> => {
+  const result = await DocumentModel.findByIdAndDelete(docId);
 
-//   if (!result) {
-//     throw new Error('Document not found!')
-//   }
-// }
+  if (!result) {
+    throw new Error('Document not found!')
+  }
+}
 
 export const updateDocument= async (docId: Types.ObjectId | string, content: string): Promise<Document> => {
   const updatedDoc = await DocumentModel.findByIdAndUpdate(
