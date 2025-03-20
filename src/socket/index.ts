@@ -69,7 +69,6 @@ export default async (io: Server, redis: Redis) => {
         // Send changed content to clients
         socket.broadcast.to(docId).emit('doc-change', mergedDoc.content);
 
-        console.log(mergedDoc.content);
         // Throttle saving to MongoDB to avoid excessive database writes
         if (!pendingSyncs.has(docId)) {
           // Set up a timeout to sync to MongoDB after a short delay
