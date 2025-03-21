@@ -111,8 +111,9 @@ export const documentRouter = (router: Router, redis: Redis) => {
   .delete(async (req: Request, res: Response): Promise<any> => {
     try {
       const { docId } = req.params;
+      const userId = req.auth.payload.sub;
 
-      await deleteDocumentById(docId);
+      await deleteDocumentById(userId, docId);
 
       return res.status(OK).json({ message: "success" });
     } catch (error) {

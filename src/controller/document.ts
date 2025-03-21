@@ -45,8 +45,18 @@ export const createDocument = async (userId: string): Promise<Document> => {
   return newDoc;
 }
 
-export const deleteDocumentById = async (docId: Types.ObjectId | string): Promise<void> => {
+export const deleteDocumentById = async (userId: string, docId: Types.ObjectId | string): Promise<void> => {
   const result = await DocumentModel.findByIdAndDelete(docId);
+
+  await UserModel.findOneAndUpdate(
+    {
+      userId: userId
+    },
+    {
+      $pull: { documents: docId }
+    },
+    { new: true }
+  );
 
   if (!result) {
     throw new Error('Document not found!')
