@@ -4,7 +4,7 @@ async function connectRedis() {
   try {
     const redis = new Redis({
       port: 6379, // Redis port
-      host: "127.0.0.1", // Redis host
+      host: process.env.REDIS_HOST || '', // Redis host
       username: "default", // needs Redis >= 6
       password: process.env.REDIS_PASSWORD || '',
       db: 0, // Defaults to 0
