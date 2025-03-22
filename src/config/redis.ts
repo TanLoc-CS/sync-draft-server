@@ -12,7 +12,7 @@ async function connectRedis() {
 
     const health = await redis.ping();
     if (health === 'PONG') {
-      console.log('[Redis] Connected to local redis: 127.0.0.1:6379');
+      console.log(`[Redis] Connected to redis: ${process.env.REDIS_HOST}`);
       return redis;
     }
     throw new Error('Failed to connect to redis');
