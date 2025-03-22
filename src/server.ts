@@ -24,7 +24,7 @@ export class SyncServer {
     this.#io = new SocketIOServer(this.#server, {
       cors: {
         origin: '*',
-        methods: ['GET', 'POST', 'PUT']
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
       }
     })
   }

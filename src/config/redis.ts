@@ -1,7 +1,4 @@
 import Redis from "ioredis";
-import * as dotenv from "dotenv";
-
-dotenv.config();
 
 async function connectRedis() {
   try {
@@ -13,8 +10,8 @@ async function connectRedis() {
       db: 0, // Defaults to 0
     });
 
-    const check = await redis.get("test");
-    if (check === 'OKAY') {
+    const health = await redis.ping();
+    if (health === 'PONG') {
       console.log('[Redis] Connected to local redis: 127.0.0.1:6379');
       return redis;
     }
