@@ -1,5 +1,6 @@
 import { Document, DocumentModel, UserModel } from "../model";
 import { mongo, Types } from "mongoose";
+import { removeSharedIdFromProfile } from "./user";
 
 export const getDocumentsbyUserId = async (userId: string): Promise<Document[]> => {
   const documents = await DocumentModel.find({ ownerId: userId }).exec();
@@ -7,10 +8,11 @@ export const getDocumentsbyUserId = async (userId: string): Promise<Document[]> 
   return documents;
 };
 
-export const getDocumentById = async (docId: Types.ObjectId | string): Promise<Document> => {
+export const getDocumentById = async (userId: string, docId: Types.ObjectId | string): Promise<Document> => {
   const document = await DocumentModel.findById(docId).exec();
   
   if (!document) {
+    await removeSharedIdFromProfile(userId, docId);
     throw new Error('Document not found!');
   }
 

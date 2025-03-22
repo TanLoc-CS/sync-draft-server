@@ -23,7 +23,7 @@ export const documentRouter = (router: Router, redis: Redis) => {
           return res.status(NOT_FOUND).json(null);
         }
 
-        const sharedDocs = await Promise.all(user.shared.map(docId => getDocumentById(docId)));
+        const sharedDocs = await Promise.all(user.shared.map(docId => getDocumentById(userId, docId)));
 
         return res.status(OK).json(sharedDocs);
       }
@@ -46,10 +46,9 @@ export const documentRouter = (router: Router, redis: Redis) => {
       const { docId } = req.params;
       const userId = req.auth.payload.sub;
 
-      const doc = await getDocumentById(docId);
+      const doc = await getDocumentById(userId, docId);
 
       if (!doc) {
-        await removeSharedIdFromProfile(userId, docId);
         return res.status(NOT_FOUND).json(null)
       }
 
@@ -114,6 +113,8 @@ export const documentRouter = (router: Router, redis: Redis) => {
       const userId = req.auth.payload.sub;
 
       await deleteDocumentById(userId, docId);
+
+      await redis.del(`room_${docId}`, docId)
 
       return res.status(OK).json({ message: "success" });
     } catch (error) {

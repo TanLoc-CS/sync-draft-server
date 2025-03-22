@@ -1,4 +1,4 @@
-import { mongo } from "mongoose";
+import { mongo, Types } from "mongoose";
 import { User, UserModel } from "../model";
 
 export const getUserById = async (userId: string): Promise<User>  => {
@@ -30,7 +30,7 @@ export const createUser = async (email: string, userId: string): Promise<User> =
   throw new Error('User already exists');  
 }
 
-export const addSharedIdToProfile = async (userId: string, docId: string) => {
+export const addSharedIdToProfile = async (userId: string, docId: Types.ObjectId | string) => {
   const addedNewShared = await UserModel.findOneAndUpdate(
     {
       userId: userId
@@ -44,7 +44,7 @@ export const addSharedIdToProfile = async (userId: string, docId: string) => {
   return addedNewShared;
 }
 
-export const removeSharedIdFromProfile = async (userId: string, docId: string) => {
+export const removeSharedIdFromProfile = async (userId: string, docId: Types.ObjectId | string) => {
   const removedShared = await UserModel.findOneAndUpdate(
     {
       userId: userId
