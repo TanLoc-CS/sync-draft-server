@@ -32,7 +32,7 @@ export default async (io: Server, redis: Redis) => {
         console.log(`[Socket] Doc ${`room_${docId}`}: ${usersInDoc}`);
   
         //Send list of existing users editing the doc
-        io.to(docId).emit('online-users', usersInDoc);
+        io.to(`room_${docId}`).emit('online-users', usersInDoc);
       } catch (error) {
         console.error(`[Error] join-doc | ${userId}: ${error}`);
       }
@@ -101,7 +101,7 @@ export default async (io: Server, redis: Redis) => {
   
         if (leavingUser) {
           const usersInDoc = await redis.smembers(`room_${docId}`);
-          socket.broadcast.to(docId).emit('online-users', usersInDoc);
+          socket.broadcast.to(`room_${docId}`).emit('online-users', usersInDoc);
           
           if (usersInDoc.length === 0 && docChangeStreams.has(docId)) {
             docChangeStreams.get(docId).close();
@@ -129,7 +129,7 @@ export default async (io: Server, redis: Redis) => {
 
           if (leavingUser) {
             const usersInDoc = await redis.smembers(`room_${docId}`);
-            socket.broadcast.to(docId).emit('online-users', usersInDoc);
+            socket.broadcast.to(`room_${docId}`).emit('online-users', usersInDoc);
             
             if (usersInDoc.length === 0 && docChangeStreams.has(docId)) {
               docChangeStreams.get(docId).close();
