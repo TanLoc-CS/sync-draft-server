@@ -11,13 +11,15 @@ export default async (io: Server, redis: Redis) => {
   const pendingSyncs = new Map<string, NodeJS.Timeout>();
 
   io.on('connection', async (socket) => {
-    console.log(`[Server] ${socket.id} connected`)
-
+    
     // Scenario: user join a document
     socket.on('join-doc', async ({docId, userId} : {docId: string, userId: string}) => {
+      console.log(`[Socket] Client socket ${socket.id} connected`)
       try {
-        socket.join(docId);
-        console.log(`[Server] ${socket.id}: ${userId}|${`room_${docId}`}`);
+        const room = `room_${docId}`;
+        socket.join(room);
+
+        console.log(`[Socket] ${socket.id}: [${userId}] joined ${`room_${docId}`}`);
   
         const existingUser = await redis.sismember(`room_${docId}`, userId);
   
@@ -27,7 +29,7 @@ export default async (io: Server, redis: Redis) => {
         }
   
         const usersInDoc = await redis.smembers(`room_${docId}`);
-        console.log(`[Server] Doc ${`room_${docId}`}: ${usersInDoc}`);
+        console.log(`[Socket] Doc ${`room_${docId}`}: ${usersInDoc}`);
   
         //Send list of existing users editing the doc
         io.to(docId).emit('online-users', usersInDoc);
@@ -64,11 +66,11 @@ export default async (io: Server, redis: Redis) => {
         const editedDoc = automerge.from({ content: content });
         const mergedDoc = automerge.merge(editedDoc, curDoc);
 
-        await redis.set(docId, mergedDoc.content);
-
         // Send changed content to clients
-        socket.broadcast.to(docId).emit('doc-change', mergedDoc.content);
+        socket.broadcast.to(`room_${docId}`).emit('doc-change', mergedDoc.content);
 
+        await redis.set(docId, mergedDoc.content);
+        
         // Throttle saving to MongoDB to avoid excessive database writes
         if (!pendingSyncs.has(docId)) {
           // Set up a timeout to sync to MongoDB after a short delay
@@ -81,7 +83,7 @@ export default async (io: Server, redis: Redis) => {
               } catch (error) {
                 console.log(`[Error] edit-doc | update doc[${docId}]: ${error}`)
               }
-            }, 500)
+            }, 50)
           )
         }
       } catch (error) {
@@ -91,23 +93,27 @@ export default async (io: Server, redis: Redis) => {
 
     // Scenario: user disconnect with client
     socket.on('leave-doc', async ({docId, userId} : {docId: string, userId: string}) => {
-      socket.leave(docId);
-      console.log(`[Socket] User ${userId} leave ${`room_${docId}`}`)
-      const leavingUser = await redis.srem(`room_${docId}`, userId);
-      await redis.del(socket.id);
-
-      if (leavingUser) {
-        const usersInDoc = await redis.smembers(`room_${docId}`);
-        socket.broadcast.to(docId).emit('online-users', usersInDoc);
-        
-        if (usersInDoc.length === 0 && docChangeStreams.has(docId)) {
-          docChangeStreams.get(docId).close();
-          docChangeStreams.delete(docId);
-          console.log(`[Socket] Closed change stream for doc ${docId}`);
+      try {
+        socket.leave(docId);
+        console.log(`[Socket] User ${userId} leave ${`room_${docId}`}`)
+        const leavingUser = await redis.srem(`room_${docId}`, userId);
+        await redis.del(socket.id);
+  
+        if (leavingUser) {
+          const usersInDoc = await redis.smembers(`room_${docId}`);
+          socket.broadcast.to(docId).emit('online-users', usersInDoc);
+          
+          if (usersInDoc.length === 0 && docChangeStreams.has(docId)) {
+            docChangeStreams.get(docId).close();
+            docChangeStreams.delete(docId);
+            console.log(`[Socket] Closed change stream for doc ${docId}`);
+          }
         }
+  
+        console.log(`[Socket] ${socket.id} disconnected`);
+      } catch (error) {
+        console.error(`[Error] leave-doc | ${docId}: ${error}`);
       }
-
-      console.log(`[Socket] ${socket.id} disconnected`);
     })
 
     socket.on('disconnect', async () => {
