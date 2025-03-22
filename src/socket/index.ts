@@ -76,9 +76,9 @@ export default async (io: Server, redis: Redis) => {
           // Set up a timeout to sync to MongoDB after a short delay
           pendingSyncs.set(
             docId,
-            setTimeout(async () => {
+            setTimeout(() => {
               try {
-                await updateDocument(docId, mergedDoc.content);
+                updateDocument(docId, mergedDoc.content);
                 pendingSyncs.delete(docId);
               } catch (error) {
                 console.log(`[Error] edit-doc | update doc[${docId}]: ${error}`)
